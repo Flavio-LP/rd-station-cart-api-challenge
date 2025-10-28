@@ -1,11 +1,10 @@
-:concurrency: 5
-:queues:
-  - default
-
-:scheduler:
-  :schedule:
-    mark_abandoned_carts:
-      cron: '* * * * *'  # A cada hora
-      class: MarkCartAsAbandonedJob
-      queue: default
-      description: "Marca carrinhos como abandonados após 3 horas de inatividade"
+:schedule:
+  mark_cart_as_abandoned_job:
+    cron: '0 */3 * * *'  # A cada 3 horas
+    class: MarkCartAsAbandonedJob
+    queue: default
+  
+  remove_abandoned_carts_job:
+    cron: '0 2 * * *'  # 1x por dia às 2h da manhã
+    class: RemoveAbandonedCartsJob
+    queue: default
