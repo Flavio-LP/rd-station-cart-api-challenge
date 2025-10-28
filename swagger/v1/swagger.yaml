@@ -151,6 +151,19 @@ paths:
                     type: integer
                   products:
                     type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        quantity:
+                          type: integer
+                        unit_price:
+                          type: string
+                        total_price:
+                          type: string
                   total_price:
                     type: string
         '404':
