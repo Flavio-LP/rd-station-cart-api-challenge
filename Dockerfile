@@ -19,7 +19,7 @@ FROM base as build
 
 # Install packages needed to build gems
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libpq-dev libvips pkg-config
+    apt-get install --no-install-recommends -y build-essential git libpq-dev libvips pkg-config dos2unix
 
 # Install application gems
 COPY Gemfile Gemfile.lock ./
@@ -30,6 +30,9 @@ RUN bundle install && \
 # Copy application code
 COPY . .
 
+# Convert line endings to LF for all scripts
+RUN find /rails/bin -type f -exec dos2unix {} \;
+
 # Precompile bootsnap code for faster boot times
 RUN bundle exec bootsnap precompile app/ lib/
 
@@ -39,7 +42,7 @@ FROM base
 
 # Install packages needed for deployment
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libvips postgresql-client redis-tools && \
+    apt-get install --no-install-recommends -y curl libvips postgresql-client redis-tools dos2unix && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Copy built artifacts: gems, application
@@ -52,9 +55,6 @@ RUN useradd rails --create-home --shell /bin/bash && \
     chmod +x /rails/bin/docker-entrypoint
 
 USER rails:rails
-
-# Ensure your entrypoint is executable
-#RUN chmod +x /rails/bin/docker-entrypoint
 
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]

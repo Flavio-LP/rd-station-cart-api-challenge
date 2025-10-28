@@ -5,6 +5,6 @@
     queue: default
   
   remove_abandoned_carts_job:
-    cron: '0 2 * * *'  # 1x por dia às 2h da manhã
+    cron: '0 */3 * * *'  # A cada 3 horas
     class: RemoveAbandonedCartsJob
     queue: default
