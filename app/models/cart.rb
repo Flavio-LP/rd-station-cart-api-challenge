@@ -12,7 +12,7 @@ class Cart < ApplicationRecord
   def remove_if_abandoned
     destroy if abandoned? && last_interaction_at <= 7.days.ago
   end
-
+  
   def abandoned?
     abandoned == true
   end
