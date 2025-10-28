@@ -1,0 +1,162 @@
+---
+openapi: 3.0.1
+info:
+  title: Cart API V1
+  version: v1
+  description: API for managing shopping carts
+paths:
+  "/cart":
+    post:
+      summary: Creates a cart and adds a product
+      tags:
+      - Carts
+      parameters: []
+      responses:
+        '201':
+          description: cart created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        quantity:
+                          type: integer
+                        unit_price:
+                          type: string
+                        total_price:
+                          type: string
+                  total_price:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_id:
+                  type: integer
+                quantity:
+                  type: integer
+              required:
+              - product_id
+              - quantity
+    get:
+      summary: Shows the current cart
+      tags:
+      - Carts
+      responses:
+        '200':
+          description: cart found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        quantity:
+                          type: integer
+                        unit_price:
+                          type: string
+                        total_price:
+                          type: string
+                  total_price:
+                    type: string
+  "/cart/add_item":
+    post:
+      summary: Adds an item to the cart
+      tags:
+      - Carts
+      parameters: []
+      responses:
+        '200':
+          description: item added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        quantity:
+                          type: integer
+                        unit_price:
+                          type: string
+                        total_price:
+                          type: string
+                  total_price:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_id:
+                  type: integer
+                quantity:
+                  type: integer
+              required:
+              - product_id
+              - quantity
+  "/cart/{product_id}":
+    parameters:
+    - name: product_id
+      in: path
+      required: true
+      schema:
+        type: integer
+    delete:
+      summary: Removes an item from the cart
+      tags:
+      - Carts
+      responses:
+        '200':
+          description: item removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  products:
+                    type: array
+                  total_price:
+                    type: string
+        '404':
+          description: product not found in cart
+servers:
+- url: http://localhost:3000
+  variables:
+    defaultHost:
+      default: localhost:3000
