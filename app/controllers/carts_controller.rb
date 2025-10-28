@@ -1,30 +1,17 @@
 class CartsController < ApplicationController
-  before_action :set_cart, only: [:show, :add_item, :destroy_item]
-  before_action :set_or_create_cart, only: [:create]
+  before_action :set_or_create_cart, only: [:show, :create, :add_item, :destroy_item]
 
   def show
     render json: cart_response
   end
 
   def create
-    product = Product.find(params[:product_id])
-    cart_item = @cart.cart_items.find_or_initialize_by(product_id: product.id)
-    cart_item.quantity ||= 0
-    cart_item.quantity += params[:quantity].to_i
-    cart_item.save!
-    
-    update_cart_total
+    add_product_to_cart
     render json: cart_response, status: :created
   end
 
   def add_item
-    product = Product.find(params[:product_id])
-    cart_item = @cart.cart_items.find_or_initialize_by(product_id: product.id)
-    cart_item.quantity ||= 0
-    cart_item.quantity += params[:quantity].to_i
-    cart_item.save!
-    
-    update_cart_total
+    add_product_to_cart
     render json: cart_response
   end
 
@@ -34,7 +21,7 @@ class CartsController < ApplicationController
     
     if cart_item
       cart_item.destroy
-      update_cart_total
+      @cart.update_total!
       render json: cart_response
     else
       render json: { error: 'Product not found in cart' }, status: :not_found
@@ -47,27 +34,20 @@ class CartsController < ApplicationController
     @cart = Cart.find_by(id: session[:cart_id])
     
     if @cart.nil?
-      @cart = Cart.create(total_price: 0, last_interaction_at: Time.current, abandoned: false)
+      @cart = Cart.create!(total_price: 0, last_interaction_at: Time.current, abandoned: false)
       session[:cart_id] = @cart.id
     else
-      @cart.update(last_interaction_at: Time.current)
+      @cart.update!(last_interaction_at: Time.current)
     end
   end
 
-  def set_cart
-    @cart = Cart.find_by(id: session[:cart_id])
-    
-    if @cart.nil?
-      @cart = Cart.create(total_price: 0, last_interaction_at: Time.current, abandoned: false)
-      session[:cart_id] = @cart.id
-    else
-      @cart.update(last_interaction_at: Time.current)
-    end
-  end
-
-  def update_cart_total
-    total = @cart.cart_items.joins(:product).sum('products.price * cart_items.quantity')
-    @cart.update(total_price: total)
+  def add_product_to_cart
+    product = Product.find(params[:product_id])
+    cart_item = @cart.cart_items.find_or_initialize_by(product_id: product.id)
+    cart_item.quantity ||= 0
+    cart_item.quantity += params[:quantity].to_i
+    cart_item.save!
+    @cart.update_total!
   end
 
   def cart_response
