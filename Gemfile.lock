@@ -89,6 +89,10 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     diff-lcs (1.5.1)
+    dotenv (3.1.8)
+    dotenv-rails (3.1.8)
+      dotenv (= 3.1.8)
+      railties (>= 6.1)
     drb (2.2.1)
     em-websocket (0.5.3)
       eventmachine (>= 0.12.9)
@@ -100,6 +104,7 @@ GEM
     ffi (1.17.0-aarch64-linux-gnu)
     ffi (1.17.0-arm-linux-gnu)
     ffi (1.17.0-arm64-darwin)
+    ffi (1.17.0-x64-mingw-ucrt)
     ffi (1.17.0-x86-linux-gnu)
     ffi (1.17.0-x86_64-darwin)
     ffi (1.17.0-x86_64-linux-gnu)
@@ -166,6 +171,8 @@ GEM
     nokogiri (1.16.4-arm-linux)
       racc (~> 1.4)
     nokogiri (1.16.4-arm64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.16.4-x64-mingw-ucrt)
       racc (~> 1.4)
     nokogiri (1.16.4-x86-linux)
       racc (~> 1.4)
@@ -270,6 +277,8 @@ GEM
     timeout (0.4.1)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
+    tzinfo-data (1.2025.2)
+      tzinfo (>= 1.0.0)
     webrick (1.8.1)
     websocket-driver (0.7.6)
       websocket-extensions (>= 0.1.0)
@@ -280,6 +289,7 @@ PLATFORMS
   aarch64-linux
   arm-linux
   arm64-darwin
+  x64-mingw-ucrt
   x86-linux
   x86_64-darwin
   x86_64-linux
@@ -287,6 +297,7 @@ PLATFORMS
 DEPENDENCIES
   bootsnap
   debug
+  dotenv-rails
   guard
   guard-livereload
   pg (~> 1.1)
