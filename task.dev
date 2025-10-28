@@ -1,0 +1,22 @@
+1. Testes Pendentes
+spec/requests/carts_spec.rb:4 - Testes de comportamento do controller
+spec/routing/carts_routing_spec.rb:10 - Teste de validação de criação de carrinho
+spec/models/cart_item_spec.rb:4 - Testes do modelo CartItem
+
+2. Testes com Erro (precisam passar)
+spec/models/cart_spec.rb:15 - Teste de marcar carrinho como abandonado
+spec/models/cart_spec.rb:24 - Teste de remover carrinho abandonado
+spec/requests/carts_spec.rb:16 - Teste de atualização de quantidade
+
+3. Validações e Tratamento de Erros
+Validar quantidade não negativa
+Validar produto existe antes de adicionar
+Tratamento de erros em todos os endpoints
+
+4. Criar um readme com as documentações
+
+5. Opcional (mas recomendado)
+Factories para testes (FactoryBot)
+Melhorar docker-compose.yml se necessário (ok)
+incluir swagger -> rswagger
+
