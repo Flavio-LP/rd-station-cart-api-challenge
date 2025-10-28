@@ -2,9 +2,9 @@ require 'rails_helper'
 
 RSpec.describe RemoveAbandonedCartsJob, type: :job do
   describe '#perform' do
-    let!(:old_abandoned_cart) { create(:cart, :abandoned, created_at: 8.days.ago) }
-    let!(:recent_abandoned_cart) { create(:cart, :abandoned, created_at: 2.days.ago) }
-    let!(:active_cart) { create(:cart, :not_abandoned, created_at: 10.days.ago) }
+  let!(:old_abandoned_cart) { Cart.create!(abandoned: true, last_interaction_at: 8.days.ago, total_price: 0) }
+  let!(:active_cart) { Cart.create!(abandoned: false, last_interaction_at: 8.days.ago, total_price: 0) }
+  let!(:recent_abandoned_cart) { Cart.create!(abandoned: true, last_interaction_at: 1.day.ago, total_price: 0) }
     
     it 'removes old abandoned carts' do
       expect {
@@ -33,20 +33,23 @@ RSpec.describe RemoveAbandonedCartsJob, type: :job do
       expect(described_class.queue).to eq('default')
     end
     
-    it 'can be enqueued' do
-      expect {
-        described_class.perform_async
-      }.to change(described_class.jobs, :size).by(1)
-    end
+  it 'can be enqueued' do
+    expect {
+      RemoveAbandonedCartsJob.perform_async
+    }.to change(Sidekiq::Queues["default"], :size).by(1)
+  end
+
     
     context 'with cart items' do
-      let!(:cart_with_items) { create(:cart, :abandoned, :with_items, created_at: 8.days.ago, items_count: 3) }
-      
+      #let!(:cart_with_items) { Cart.create!(abandoned: true, last_interaction_at: 8.days.ago, total_price: 0) }
+      let(:product1) { Product.create!(name: "Product 1", price: 10.0) }
+      let!(:cart_item1) { CartItem.create!(cart: old_abandoned_cart, product: product1, quantity: 1) }
+
       it 'removes cart and associated items' do
         expect {
           described_class.new.perform
-        }.to change(Cart, :count).by(-2)
-         .and change(CartItem, :count).by(-3)
+        }.to change(Cart, :count).by(-1)
+        .and change(CartItem, :count).by(-1)
       end
     end
   end

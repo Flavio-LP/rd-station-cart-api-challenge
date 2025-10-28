@@ -1,63 +1,36 @@
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe CartsController, type: :routing do
-  describe 'routing' do
-    it 'routes to #index' do
-      expect(get: '/carts').to route_to('carts#index')
-    end
-
+  describe 'routes' do
     it 'routes to #show' do
-      expect(get: '/carts/1').to route_to('carts#show', id: '1')
+      expect(get: '/cart').to route_to('carts#show')
     end
 
     it 'routes to #create' do
-      expect(post: '/carts').to route_to('carts#create')
+      #pending "#TODO: Escreva um teste para validar a criação de um carrinho #{__FILE__}" 
+      expect(post: '/cart').to route_to('carts#create')
     end
 
-    it 'routes to #update via PUT' do
-      expect(put: '/carts/1').to route_to('carts#update', id: '1')
+    it 'routes to #add_item via POST' do
+      expect(post: '/cart/add_item').to route_to('carts#add_item')
     end
 
-    it 'routes to #update via PATCH' do
-      expect(patch: '/carts/1').to route_to('carts#update', id: '1')
+    it 'routes to #destroy_item with product_id parameter' do
+      product = create(:product)
+      expect(delete: "/cart/#{product.id}").to route_to('carts#destroy_item', product_id: product.id.to_s)
     end
 
-    it 'routes to #destroy' do
-      expect(delete: '/carts/1').to route_to('carts#destroy', id: '1')
+    it 'generates the correct path for show' do
+      expect(get: cart_path).to route_to('carts#show')
     end
-    
-    it 'routes to #add_item' do
-      expect(post: '/carts/1/add_item').to route_to('carts#add_item', id: '1')
+
+    it 'generates the correct path for create' do
+      expect(post: cart_path).to route_to('carts#create')
     end
-    
-    it 'routes to #remove_item' do
-      expect(delete: '/carts/1/remove_item').to route_to('carts#remove_item', id: '1')
+
+    it 'generates the correct path for add_item' do
+      expect(post: cart_add_item_path).to route_to('carts#add_item')
     end
-    
-    it 'routes to #clear' do
-      expect(delete: '/carts/1/clear').to route_to('carts#clear', id: '1')
-    end
+
   end
-  
-  describe 'named routes' do
-    it 'generates carts_path' do
-      expect(carts_path).to eq('/carts')
-    end
-    
-    it 'generates cart_path' do
-      expect(cart_path(1)).to eq('/carts/1')
-    end
-    
-    it 'generates add_item_cart_path' do
-      expect(add_item_cart_path(1)).to eq('/carts/1/add_item')
-    end
-    
-    it 'generates remove_item_cart_path' do
-      expect(remove_item_cart_path(1)).to eq('/carts/1/remove_item')
-    end
-    
-    it 'generates clear_cart_path' do
-      expect(clear_cart_path(1)).to eq('/carts/1/clear')
-    end
-  end
-end
+end 

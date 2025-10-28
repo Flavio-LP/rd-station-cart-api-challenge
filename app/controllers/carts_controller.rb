@@ -1,4 +1,5 @@
 class CartsController < ApplicationController
+  ## TODO Escreva a lógica dos carrinhos aqui
   before_action :set_or_create_cart, only: [:show, :create, :add_item, :destroy_item]
 
   def show

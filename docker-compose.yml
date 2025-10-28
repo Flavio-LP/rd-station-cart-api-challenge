@@ -9,7 +9,7 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - postgres13:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -30,14 +30,16 @@ services:
   
   web:
     build: .
-    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails db:drop && bundle exec rails db:create && bundle exec rails db:migrate && bundle exec rails db:seed && bundle exec rails server -b 0.0.0.0"
+    command: sh -c "rm -f tmp/pids/server.pid && bundle exec rails db:prepare && bundle exec rails server -b 0.0.0.0"
     volumes:
       - .:/rails
     ports:
       - "3000:3000"
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://postgres:password@db:5432/myapp_development
       - REDIS_URL=redis://redis:6379/0
@@ -50,8 +52,10 @@ services:
     volumes:
       - .:/rails
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://postgres:password@db:5432/myapp_development
       - REDIS_URL=redis://redis:6379/0
@@ -60,33 +64,15 @@ services:
   
   test:
     build: .
-    command: bash -c "sleep 5 && bundle exec rails db:drop RAILS_ENV=test && bundle exec rails db:create RAILS_ENV=test && bundle exec rails db:migrate RAILS_ENV=test && echo '' && echo '🧪 Executando testes...' && echo '═══════════════════════════════════════════════════════════════' && bundle exec rspec --format documentation --color && echo '═══════════════════════════════════════════════════════════════'"
-    volumes:
-      - .:/rails
-    depends_on:
-      - db
-      - redis
-    environment:
-      - DATABASE_URL=postgresql://postgres:password@db:5432/myapp_test
-      - REDIS_URL=redis://redis:6379/0
-      - RAILS_ENV=test
-    user: root
-
-  test-summary:
-    build: .
     command: |
-      bash -c "
+      sh -c "
       sleep 5 &&
       echo '🔧 Preparando ambiente de teste...' &&
-      bundle exec rails db:drop RAILS_ENV=test 2>/dev/null || true &&
-      bundle exec rails db:create RAILS_ENV=test &&
-      bundle exec rails db:migrate RAILS_ENV=test &&
+      bundle exec rails db:drop RAILS_ENV=test &&
+      bundle exec rails db:prepare RAILS_ENV=test &&
       echo '' &&
       echo '🧪 Executando bateria de testes...' &&
-      echo '═══════════════════════════════════════════════════════════════' &&
-      bundle exec rspec --format progress --format json --out tmp/rspec_results.json &&
-      echo '═══════════════════════════════════════════════════════════════' &&
-      echo '' &&
+      bundle exec rspec --format json --out tmp/rspec_results.json --format documentation &&
       ruby -rjson -e '
         results = JSON.parse(File.read(\"tmp/rspec_results.json\"))
         total = results[\"summary\"][\"example_count\"]
@@ -104,13 +90,75 @@ services:
         puts \"║  ⏭️  Testes PENDENTES:   #{pending.to_s.rjust(3)} / #{total}#{\" \" * (28 - total.to_s.length)}║\"
         puts \"║  ⏱️  Tempo de execução: #{duration.round(2)}s#{\" \" * (30 - duration.round(2).to_s.length)}║\"
         puts \"╠═══════════════════════════════════════════════════════════════╣\"
-        if failures == 0
-          puts \"║  🎉 TODOS OS TESTES PASSARAM! 🎉#{\" \" * 28}║\"
-        else
-          puts \"║  ⚠️  ALGUNS TESTES FALHARAM#{\" \" * 33}║\"
+        
+        if failures > 0
+          puts \"║  ❌ TESTES QUE FALHARAM:#{\" \" * 38}║\"
+          puts \"╠═══════════════════════════════════════════════════════════════╣\"
+          
+          results[\"examples\"].each do |example|
+            if example[\"status\"] == \"failed\"
+              description = example[\"full_description\"]
+              file_path = example[\"file_path\"]
+              line_number = example[\"line_number\"]
+              exception = example[\"exception\"]
+              
+              if description.length > 59
+                description = description[0..55] + \"...\"
+              end
+              
+              puts \"║  📍 #{description}#{\" \" * (59 - description.length)}║\"
+              
+              location = \"#{file_path}:#{line_number}\"
+              if location.length > 59
+                location = \"...\" + location[-56..-1]
+              end
+              puts \"║     📂 #{location}#{\" \" * (56 - location.length)}║\"
+              
+              if exception
+                error_class = exception[\"class\"] || \"Error\"
+                error_message = exception[\"message\"] || \"\"
+                
+                if error_class.length > 59
+                  error_class = error_class[0..55] + \"...\"
+                end
+                puts \"║     ⚠️  #{error_class}#{\" \" * (57 - error_class.length)}║\"
+                
+                error_lines = error_message.split(\"\\n\")
+                error_lines.first(3).each do |line|
+                  line = line.strip
+                  if line.length > 59
+                    line = line[0..55] + \"...\"
+                  end
+                  puts \"║        #{line}#{\" \" * (59 - line.length)}║\"
+                end
+              end
+              
+              puts \"╠═══════════════════════════════════════════════════════════════╣\"
+            end
+          end
         end
+        
+        if failures == 0 && pending == 0
+          puts \"║  🎉 TODOS OS TESTES PASSARAM! 🎉#{\" \" * 28}║\"
+        elsif failures == 0
+          puts \"║  ✅ Todos os testes executados passaram!#{\" \" * 20}║\"
+          puts \"║  ⏭️  Existem #{pending} testes pendentes de implementação#{\" \" * (26 - pending.to_s.length)}║\"
+        else
+          puts \"║  ⚠️  #{failures} teste(s) falharam - veja detalhes acima#{\" \" * (25 - failures.to_s.length)}║\"
+        end
+        
         puts \"╚═══════════════════════════════════════════════════════════════╝\"
         puts \"\"
+        
+        if failures > 0
+          puts \"💡 Dica: Execute os testes individualmente para mais detalhes:\"
+          results[\"examples\"].each do |example|
+            if example[\"status\"] == \"failed\"
+              puts \"   bundle exec rspec #{example[\"file_path\"]}:#{example[\"line_number\"]}\"
+            end
+          end
+          puts \"\"
+        end
         
         exit(failures > 0 ? 1 : 0)
       '
@@ -118,8 +166,10 @@ services:
     volumes:
       - .:/rails
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://postgres:password@db:5432/myapp_test
       - REDIS_URL=redis://redis:6379/0
@@ -127,5 +177,5 @@ services:
     user: root
 
 volumes:
-  postgres13:
+  postgres_data:
   redis_data:
