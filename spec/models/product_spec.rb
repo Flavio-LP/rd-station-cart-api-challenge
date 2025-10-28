@@ -1,23 +1,39 @@
 require 'rails_helper'
 
 RSpec.describe Product, type: :model do
-  context 'when validating' do
-    it 'validates presence of name' do
-      product = described_class.new(price: 100)
-      expect(product.valid?).to be_falsey
-      expect(product.errors[:name]).to include("can't be blank")
+  describe 'validations' do
+    subject { build(:product) }
+    
+    it { is_expected.to validate_presence_of(:name) }
+    it { is_expected.to validate_presence_of(:price) }
+    it { is_expected.to validate_numericality_of(:price).is_greater_than(0) }
+  end
+  
+  describe 'associations' do
+    it { is_expected.to have_many(:cart_items).dependent(:destroy) }
+    it { is_expected.to have_many(:carts).through(:cart_items) }
+  end
+  
+  describe 'factory' do
+    it 'has a valid factory' do
+      expect(build(:product)).to be_valid
     end
-
-    it 'validates presence of price' do
-      product = described_class.new(name: 'name')
-      expect(product.valid?).to be_falsey
-      expect(product.errors[:price]).to include("can't be blank")
+    
+    it 'creates expensive product trait' do
+      product = build(:product, :expensive)
+      expect(product.price).to eq(50000)
     end
-
-    it 'validates numericality of price' do
-      product = described_class.new(price: -1)
-      expect(product.valid?).to be_falsey
-      expect(product.errors[:price]).to include("must be greater than or equal to 0")
+    
+    it 'creates cheap product trait' do
+      product = build(:product, :cheap)
+      expect(product.price).to eq(500)
     end
+  end
+  
+  describe 'database columns' do
+    it { is_expected.to have_db_column(:name).of_type(:string) }
+    it { is_expected.to have_db_column(:price).of_type(:integer) }
+    it { is_expected.to have_db_column(:created_at).of_type(:datetime) }
+    it { is_expected.to have_db_column(:updated_at).of_type(:datetime) }
   end
 end
