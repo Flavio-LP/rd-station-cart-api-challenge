@@ -295,13 +295,11 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  bigdecimal (~> 3.1.7)
   bootsnap
   debug
   dotenv-rails
   guard
   guard-livereload
-  io-console (~> 0.7.2)
   pg (~> 1.1)
   puma (>= 5.0)
   rails (~> 7.1.3, >= 7.1.3.2)

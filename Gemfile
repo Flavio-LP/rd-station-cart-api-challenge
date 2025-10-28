@@ -6,8 +6,8 @@ gem "pg", "~> 1.1"
 gem "puma", ">= 5.0"
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false
-gem "bigdecimal", "~> 3.1.7"
-gem "io-console", "~> 0.7.2"
+#gem "bigdecimal", "~> 3.1.7"
+#gem "io-console", "~> 0.7.2"
 
 gem 'redis', '~> 5.2'
 gem 'sidekiq', '~> 7.2', '>= 7.2.4'
