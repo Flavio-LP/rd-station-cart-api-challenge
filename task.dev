@@ -20,3 +20,13 @@ Factories para testes (FactoryBot)
 Melhorar docker-compose.yml se necessário (ok)
 incluir swagger -> rswagger
 
+-- shell
+
+# Opção 1: Testes com saída detalhada
+docker-compose run --rm test
+
+# Opção 2: Testes com resumo formatado (RECOMENDADO)
+docker-compose run --rm test-summary
+
+# Opção 3: Testes específicos
+docker-compose run --rm test bash -c "sleep 5 && bundle exec rails db:test:prepare && bundle exec rspec spec/models"
