@@ -71,6 +71,10 @@ services:
       bundle exec rails db:drop RAILS_ENV=test &&
       bundle exec rails db:prepare RAILS_ENV=test &&
       echo '' &&
+      echo '📝 Gerando documentação Swagger...' &&
+      bundle exec rspec spec/integration --format Rswag::Specs::SwaggerFormatter --order defined &&
+      echo '✅ Documentação Swagger gerada em swagger/v1/swagger.yaml' &&
+      echo '' &&
       echo '🧪 Executando bateria de testes...' &&
       bundle exec rspec --format json --out tmp/rspec_results.json --format documentation &&
       ruby -rjson -e '
@@ -133,7 +137,7 @@ services:
                 end
               end
               
-              puts \"╠═══════════════════════════════════════════════════════════════╣\"
+              puts \"╠═══════════════════════════════════════════════════════════╣\"
             end
           end
         end
